@@ -1,0 +1,15 @@
+# Golden triage cases (obviously fictional). Fields: id, subject, text, expected_severity,
+# expected_category, expected_queue, and an optional planted raw identifier.
+# The expected_* fields are the INDEPENDENT ORACLE: they are hand-labelled from the reviewed
+# taxonomy, never read back from the pipeline's own output, so decision_accuracy (severity) and
+# routing_accuracy (queue) score the engine against a golden it cannot influence.
+# `planted` is a raw identifier deliberately embedded in the text; the redact-before-audit step
+# must mask it, so the pii_safety metric goes red if any raw identifier survives into an audit
+# record. NRIC values must be checksum-valid or the validator will not mask them.
+{"id": "c1", "subject": "Acme Holdings Pte Ltd (FICTIONAL)", "text": "Routine onboarding with a minor delay in supporting documents.", "expected_severity": "medium", "expected_category": "access_request", "expected_queue": "identity_access"}
+{"id": "c2", "subject": "Beta Trading (FICTIONAL)", "text": "Suspected fraud with possible sanction exposure flagged by screening.", "expected_severity": "critical", "expected_category": "fraud_or_sanctions", "expected_queue": "financial_crime_ops"}
+{"id": "c3", "subject": "Gamma LLP (FICTIONAL)", "text": "Data breach reported; urgent review needed. Contact NRIC S1234567D or ops@fictional.example.", "expected_severity": "high", "expected_category": "security_incident", "expected_queue": "security_ops", "planted": "S1234567D"}
+{"id": "c4", "subject": "Delta Co (FICTIONAL)", "text": "General inquiry about account status, no issues noted.", "expected_severity": "low", "expected_category": "general_support", "expected_queue": "service_desk_l1"}
+{"id": "c5", "subject": "Epsilon Bank (FICTIONAL)", "text": "Payroll platform outage this morning; users cannot login and the queue is degraded.", "expected_severity": "high", "expected_category": "major_outage", "expected_queue": "platform_sre"}
+{"id": "c6", "subject": "Zeta Credit Union (FICTIONAL)", "text": "Billing dispute over a duplicate invoice charge on last month's statement.", "expected_severity": "medium", "expected_category": "billing_query", "expected_queue": "finance_support"}
+{"id": "c7", "subject": "Eta Mutual (FICTIONAL)", "text": "Broken keyboard, need a replacement device for the front desk.", "expected_severity": "low", "expected_category": "hardware", "expected_queue": "endpoint_support"}

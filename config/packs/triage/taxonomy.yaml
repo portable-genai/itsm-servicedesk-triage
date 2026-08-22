@@ -1,0 +1,70 @@
+# Ticket-triage taxonomy pack (ILLUSTRATIVE, SYNTHETIC).
+#
+# This pack is CONFIGURATION, not code. The deterministic triage engine reads it; an unknown
+# field REFUSES at load rather than being ignored, because a taxonomy that silently dropped a
+# field it did not recognise is a routing policy nobody reviewed. Values are illustrative and
+# simplified for an offline demo: a real deployment loads the client's own reviewed taxonomy.
+#
+# The engine matches the ticket body against each category's keywords IN THE ORDER LISTED and the
+# first category to match wins, so more specific / more severe categories are listed first. A
+# ticket that matches nothing lands in the default category and queue. Severity is a deterministic
+# function of the matched category's priority band alone: no keyword modifier can push a ticket
+# into a higher band than its category declares, so "urgent" attached to a data-breach report does
+# not manufacture the top band that only a live financial-crime signal earns. This is the wave's
+# pack convention (H2 lands it for entitlements, H3 mirrors it here for triage and access): the
+# shape is shared, the engines are not.
+version: "1.0"
+source_id: itsm-triage-taxonomy-v1
+source_title: "Illustrative ITSM triage taxonomy (synthetic)"
+categories:
+  # A live financial-crime signal is the top band: it routes straight to the fraud / risk desk,
+  # ahead of every IT category, because a suspected fraud or sanctions hit cannot wait behind a
+  # laptop swap. Listed first so it wins over any softer keyword also present in the ticket.
+  - category_id: fraud_or_sanctions
+    keywords: [fraud, sanction, sanctions, terrorism, money laundering, laundering, embezzlement]
+    affected_service: financial_crime
+    priority: p1
+    queue: financial_crime_ops
+    citation_clause: "CAT-FRAUD"
+  - category_id: security_incident
+    keywords: [breach, leak, malware, phishing, ransomware, compromised, intrusion]
+    affected_service: security
+    priority: p2
+    queue: security_ops
+    citation_clause: "CAT-SEC"
+  - category_id: major_outage
+    keywords: [outage, down, unavailable, cannot login, "500 error", degraded]
+    affected_service: platform
+    priority: p2
+    queue: platform_sre
+    citation_clause: "CAT-OUT"
+  - category_id: access_request
+    keywords: [access, permission, entitlement, onboard, role, provision, joiner]
+    affected_service: identity
+    priority: p3
+    queue: identity_access
+    citation_clause: "CAT-ACC"
+  - category_id: billing_query
+    keywords: [invoice, billing, charge, refund, dispute]
+    affected_service: finance_systems
+    priority: p3
+    queue: finance_support
+    citation_clause: "CAT-BILL"
+  - category_id: hardware
+    keywords: [laptop, monitor, keyboard, device, peripheral, replacement]
+    affected_service: endpoint
+    priority: p4
+    queue: endpoint_support
+    citation_clause: "CAT-HW"
+# Priority band -> severity band (drives the escalation flag). p1/p2 escalate to a human.
+priority_severity:
+  p1: critical
+  p2: high
+  p3: medium
+  p4: low
+# Where an unmatched ticket lands. NOT a silent drop: a default queue is still a real queue a
+# human works, and the result carries model_agreed / status so a persistent miss is visible.
+default_category: general_support
+default_affected_service: workplace
+default_priority: p4
+default_queue: service_desk_l1

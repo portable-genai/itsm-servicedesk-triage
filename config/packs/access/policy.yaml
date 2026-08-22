@@ -1,0 +1,73 @@
+# Access-provisioning and segregation-of-duties policy pack (ILLUSTRATIVE, SYNTHETIC).
+#
+# This pack is CONFIGURATION, not code. The deterministic access engine reads it; an unknown
+# field REFUSES at load, because an access policy that silently dropped a field it did not
+# recognise is a control nobody reviewed. Values are illustrative and simplified for an offline
+# demo: a real deployment loads the client's own reviewed catalog and SoD matrix. Every role,
+# entitlement and conflict below is invented; no real system, person or identifier appears.
+#
+# Three sections, all strictly validated:
+#   roles           - the entitlement catalog: which entitlements a role grants, and its risk tier.
+#   sod_conflicts   - the toxic-combination matrix: entitlement pairs that must never coexist.
+#   approval_chains - the approver sequence per risk tier, most authoritative last.
+version: "1.0"
+source_id: itsm-access-policy-v1
+source_title: "Illustrative access & segregation-of-duties policy (synthetic)"
+roles:
+  - role_id: payments_maker
+    entitlements: [payment.create, payment.view]
+    risk_tier: high
+    citation_clause: "AC-PAY-MK"
+  - role_id: payments_approver
+    entitlements: [payment.approve, payment.view]
+    risk_tier: high
+    citation_clause: "AC-PAY-AP"
+  - role_id: vendor_admin
+    entitlements: [vendor.create, vendor.edit, vendor.view]
+    risk_tier: high
+    citation_clause: "AC-VEND"
+  - role_id: gl_poster
+    entitlements: [ledger.post, ledger.view]
+    risk_tier: high
+    citation_clause: "AC-GL"
+  - role_id: service_desk_agent
+    entitlements: [ticket.view, ticket.update, kb.view]
+    risk_tier: low
+    citation_clause: "AC-SD"
+  - role_id: reporting_viewer
+    entitlements: [report.view, ledger.view]
+    risk_tier: low
+    citation_clause: "AC-RPT"
+  - role_id: identity_admin
+    entitlements: [iam.grant, iam.revoke, iam.view]
+    risk_tier: critical
+    citation_clause: "AC-IAM"
+# A toxic combination: holding BOTH entitlements enables an unchecked end-to-end action. The
+# engine denies eligibility (never provisions unreviewed) when a request would leave the subject
+# holding both members of any pair, whether from the new role or in combination with what they
+# already hold.
+sod_conflicts:
+  - conflict_id: sod-pay-maker-checker
+    entitlements: [payment.create, payment.approve]
+    detail: "creating and approving a payment is a toxic maker-checker combination"
+    citation_clause: "SoD-PAY"
+  - conflict_id: sod-vendor-and-pay
+    entitlements: [vendor.create, payment.create]
+    detail: "creating a vendor and raising its payments enables a fictitious-vendor fraud path"
+    citation_clause: "SoD-VEND"
+  - conflict_id: sod-gl-and-pay-approve
+    entitlements: [ledger.post, payment.approve]
+    detail: "posting the ledger and approving payments removes the reconciliation check"
+    citation_clause: "SoD-GL"
+  - conflict_id: sod-iam-self-grant
+    entitlements: [iam.grant, payment.approve]
+    detail: "self-granting IAM alongside payment approval defeats every downstream control"
+    citation_clause: "SoD-IAM"
+# The approver sequence per risk tier, most authoritative last. Auto-approval is deliberately
+# NOT a member of any chain: a grant is consequential by definition, so every request routes to
+# at least one human whatever its risk tier.
+approval_chains:
+  low: [line_manager]
+  medium: [line_manager, service_owner]
+  high: [line_manager, service_owner, security_review]
+  critical: [line_manager, service_owner, security_review, ciso]

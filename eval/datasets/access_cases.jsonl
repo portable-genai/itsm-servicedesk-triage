@@ -1,0 +1,20 @@
+# Golden access / segregation-of-duties cases (obviously fictional). Fields: id, request_ref,
+# subject_ref, requested_role, current_entitlements, expected_eligible, expected_conflicts.
+# The expected_* fields are the INDEPENDENT ORACLE, hand-labelled from the reviewed policy pack
+# and never read back from the engine: sod_precision scores how many grants the engine BLOCKED
+# that were truly ineligible, so a wildcard conflict that blocks a clean grant drives it red.
+# Every subject reference is opaque and fictional; no real person or identifier appears. The
+# adversarial cases (a7, a11) hold a payment entitlement but request a benign or non-conflicting
+# role, so a precise engine must NOT block them; the toxic cases (a2, a3, a4, a5, a10) only
+# conflict once the requested role is unioned with what the subject already holds.
+{"id": "a1", "request_ref": "REQ-0001", "subject_ref": "person-0001", "requested_role": "service_desk_agent", "current_entitlements": [], "expected_eligible": true, "expected_conflicts": []}
+{"id": "a2", "request_ref": "REQ-0002", "subject_ref": "person-0002", "requested_role": "payments_maker", "current_entitlements": ["payment.approve"], "expected_eligible": false, "expected_conflicts": ["sod-pay-maker-checker"]}
+{"id": "a3", "request_ref": "REQ-0003", "subject_ref": "person-0003", "requested_role": "payments_maker", "current_entitlements": ["vendor.create"], "expected_eligible": false, "expected_conflicts": ["sod-vendor-and-pay"]}
+{"id": "a4", "request_ref": "REQ-0004", "subject_ref": "person-0004", "requested_role": "gl_poster", "current_entitlements": ["payment.approve"], "expected_eligible": false, "expected_conflicts": ["sod-gl-and-pay-approve"]}
+{"id": "a5", "request_ref": "REQ-0005", "subject_ref": "person-0005", "requested_role": "identity_admin", "current_entitlements": ["payment.approve"], "expected_eligible": false, "expected_conflicts": ["sod-iam-self-grant"]}
+{"id": "a6", "request_ref": "REQ-0006", "subject_ref": "person-0006", "requested_role": "payments_approver", "current_entitlements": [], "expected_eligible": true, "expected_conflicts": []}
+{"id": "a7", "request_ref": "REQ-0007", "subject_ref": "person-0007", "requested_role": "payments_approver", "current_entitlements": ["payment.view"], "expected_eligible": true, "expected_conflicts": []}
+{"id": "a8", "request_ref": "REQ-0008", "subject_ref": "person-0008", "requested_role": "reporting_viewer", "current_entitlements": [], "expected_eligible": true, "expected_conflicts": []}
+{"id": "a9", "request_ref": "REQ-0009", "subject_ref": "person-0009", "requested_role": "phantom_admin", "current_entitlements": [], "expected_eligible": false, "expected_conflicts": []}
+{"id": "a10", "request_ref": "REQ-0010", "subject_ref": "person-0010", "requested_role": "vendor_admin", "current_entitlements": ["payment.create"], "expected_eligible": false, "expected_conflicts": ["sod-vendor-and-pay"]}
+{"id": "a11", "request_ref": "REQ-0011", "subject_ref": "person-0011", "requested_role": "service_desk_agent", "current_entitlements": ["payment.approve", "payment.view"], "expected_eligible": true, "expected_conflicts": []}
