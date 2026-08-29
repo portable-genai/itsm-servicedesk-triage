@@ -70,7 +70,7 @@ before any model is introduced. PII redaction is a different control and does no
 No secret value is committed. `config/settings.yaml` and `.env.example` carry variable NAMES and
 non-secret defaults; `.env.secrets.example` carries placeholders. Inbound and outbound credentials
 are deliberately distinct variables: `ITSMDESK_S2S_TOKEN` authenticates callers INTO this service,
-while `HRZ7_S2S_TOKEN` and `HRZ7_S2S_SIGNING_KEY` are what it presents to the review console.
+while `HUMAN_REVIEW_S2S_TOKEN` and `HUMAN_REVIEW_S2S_SIGNING_KEY` are what it presents to the review console.
 Practices check C10 covers this.
 
 ## What about outbound service-to-service calls?
