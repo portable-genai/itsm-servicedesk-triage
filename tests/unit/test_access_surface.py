@@ -33,6 +33,7 @@ from itsm_servicedesk_triage.domain.models import (
 from itsm_servicedesk_triage.domain.pii import (
     PII_PATTERNS,
 )
+from itsm_servicedesk_triage.packs import default_access_engine
 
 from tests.conftest import audit_content, local_settings, outbound_content
 from tests.fixtures import sample_cases
@@ -42,7 +43,7 @@ def _service() -> AccessService:
     from itsm_servicedesk_triage.config import build_container
 
     container = build_container(local_settings())
-    return AccessService(container.audit, tracer=container.tracer)
+    return AccessService(container.audit, default_access_engine(), tracer=container.tracer)
 
 
 def _request(role: str, current: tuple[str, ...] = (), subject: str = "person-x") -> AccessRequest:
@@ -58,7 +59,9 @@ def test_the_service_redacts_before_the_audit_write() -> None:
     from itsm_servicedesk_triage.adapters.local.audit import LocalAuditAdapter
 
     audit = LocalAuditAdapter(local_settings())
-    service = AccessService(audit, tracer=LocalNoopTracerAdapter(local_settings()))
+    service = AccessService(
+        audit, default_access_engine(), tracer=LocalNoopTracerAdapter(local_settings())
+    )
     # A subject reference that (unusually) carries a raw identifier must be masked on the way to
     # the WORM record, exactly like the triage path.
     service.assess(
@@ -92,9 +95,9 @@ def test_access_masks_every_sink_the_request_leaves_by() -> None:
     settings = local_settings()
     audit = LocalAuditAdapter(settings)
     router = LocalReviewRouter(settings)
-    decision = AccessService(audit, tracer=LocalNoopTracerAdapter(settings)).assess(
-        sample_cases.PII_ACCESS_REQUEST, actor=sample_cases.ACTOR
-    )
+    decision = AccessService(
+        audit, default_access_engine(), tracer=LocalNoopTracerAdapter(settings)
+    ).assess(sample_cases.PII_ACCESS_REQUEST, actor=sample_cases.ACTOR)
     router.route(decision, maker=sample_cases.ACTOR, tenant=sample_cases.TENANT, action="access")
 
     rows = list(audit.log.read_all())

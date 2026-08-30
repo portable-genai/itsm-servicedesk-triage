@@ -34,6 +34,7 @@ from itsm_servicedesk_triage.domain.pii import (
 from itsm_servicedesk_triage.domain.triage_service import (
     TriageService,
 )
+from itsm_servicedesk_triage.packs import default_triage_engine
 
 from tests.conftest import audit_content, local_settings, outbound_content
 from tests.fixtures import sample_cases
@@ -42,7 +43,9 @@ from tests.fixtures import sample_cases
 def _service() -> tuple[TriageService, LocalAuditAdapter]:
     settings = Settings(profile="local", audit_path=":memory:")
     audit = LocalAuditAdapter(settings)
-    return TriageService(audit, tracer=LocalNoopTracerAdapter(settings)), audit
+    return TriageService(
+        audit, default_triage_engine(), tracer=LocalNoopTracerAdapter(settings)
+    ), audit
 
 
 def _severity(text: str) -> Severity:
@@ -101,9 +104,9 @@ def test_triage_masks_every_sink_the_ticket_leaves_by() -> None:
     settings = local_settings()
     audit = LocalAuditAdapter(settings)
     router = LocalReviewRouter(settings)
-    result = TriageService(audit, tracer=LocalNoopTracerAdapter(settings)).triage(
-        sample_cases.PII_TICKET, actor=sample_cases.ACTOR
-    )
+    result = TriageService(
+        audit, default_triage_engine(), tracer=LocalNoopTracerAdapter(settings)
+    ).triage(sample_cases.PII_TICKET, actor=sample_cases.ACTOR)
     router.route(result, maker=sample_cases.ACTOR, tenant=sample_cases.TENANT)
 
     rows = list(audit.log.read_all())

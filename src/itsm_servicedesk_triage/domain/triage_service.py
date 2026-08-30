@@ -12,29 +12,14 @@ The engine is injected, so a test and the eval oracle drive the exact object the
 
 from __future__ import annotations
 
-from functools import lru_cache
-
 from pii_kit import redact
 
 from ..ports.audit import AuditSinkPort
 from ..ports.observability import ObservabilityTracerPort
 from .kernel import AuditEvent, utcnow
 from .models import TriageInput, TriageResult
-from .packs import TriagePack, load_triage_pack
 from .pii import PII_PATTERNS, redacted_citations
 from .triage_engine import TriageEngine
-
-
-@lru_cache(maxsize=1)
-def default_triage_pack() -> TriagePack:
-    """The taxonomy shipped under ``config/packs/triage``, loaded once. Callers may inject one."""
-    return load_triage_pack()
-
-
-def default_engine() -> TriageEngine:
-    """An engine bound to the shipped taxonomy (the offline default the surfaces build)."""
-    return TriageEngine(default_triage_pack())
-
 
 #: One span per triaged ticket. Structural attributes only: see :meth:`TriageService.triage`.
 _TRIAGE_SPAN = "itsm.triage"
@@ -46,12 +31,12 @@ class TriageService:
     def __init__(
         self,
         audit: AuditSinkPort,
-        engine: TriageEngine | None = None,
+        engine: TriageEngine,
         *,
         tracer: ObservabilityTracerPort,
     ) -> None:
         self._audit = audit
-        self._engine = engine or default_engine()
+        self._engine = engine
         self._tracer = tracer
 
     def triage(self, ticket: TriageInput, *, actor: str) -> TriageResult:

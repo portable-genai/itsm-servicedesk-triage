@@ -13,8 +13,6 @@ The engine is injected, so a test and the eval oracle drive the exact object the
 
 from __future__ import annotations
 
-from functools import lru_cache
-
 from pii_kit import redact
 
 from ..ports.audit import AuditSinkPort
@@ -22,20 +20,7 @@ from ..ports.observability import ObservabilityTracerPort
 from .access_engine import AccessEngine
 from .kernel import AuditEvent, utcnow
 from .models import AccessDecision, AccessRequest
-from .packs import AccessPolicy, load_access_policy
 from .pii import PII_PATTERNS, redacted_citations
-
-
-@lru_cache(maxsize=1)
-def default_access_policy() -> AccessPolicy:
-    """The policy shipped under ``config/packs/access``, loaded once. Callers may inject one."""
-    return load_access_policy()
-
-
-def default_engine() -> AccessEngine:
-    """An engine bound to the shipped policy (the offline default the surfaces build)."""
-    return AccessEngine(default_access_policy())
-
 
 #: One span per assessed request. Structural attributes only: see :meth:`AccessService.assess`.
 _ACCESS_SPAN = "itsm.access"
@@ -47,12 +32,12 @@ class AccessService:
     def __init__(
         self,
         audit: AuditSinkPort,
-        engine: AccessEngine | None = None,
+        engine: AccessEngine,
         *,
         tracer: ObservabilityTracerPort,
     ) -> None:
         self._audit = audit
-        self._engine = engine or default_engine()
+        self._engine = engine
         self._tracer = tracer
 
     def assess(self, request: AccessRequest, *, actor: str) -> AccessDecision:

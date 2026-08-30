@@ -38,6 +38,7 @@ from itsm_servicedesk_triage.domain.models import (
 from itsm_servicedesk_triage.domain.triage_service import (
     TriageService,
 )
+from itsm_servicedesk_triage.packs import default_triage_engine
 
 
 def _settings(profile: str = "local") -> Settings:
@@ -46,7 +47,7 @@ def _settings(profile: str = "local") -> Settings:
 
 def _service() -> TriageService:
     container = build_container(_settings())
-    return TriageService(container.audit, tracer=container.tracer)
+    return TriageService(container.audit, default_triage_engine(), tracer=container.tracer)
 
 
 def _result(text: str, subject: str = "Acme Holdings (FICTIONAL)") -> TriageResult:

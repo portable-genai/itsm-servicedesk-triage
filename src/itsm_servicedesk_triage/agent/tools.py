@@ -26,6 +26,7 @@ from ..domain.access_service import AccessService
 from ..domain.models import AccessRequest, TriageInput
 from ..domain.pii import PII_PATTERNS
 from ..domain.triage_service import TriageService
+from ..packs import default_access_engine, default_triage_engine
 
 if TYPE_CHECKING:  # pragma: no cover - typing only, never imported at runtime
     from google.adk.tools import FunctionTool
@@ -84,7 +85,9 @@ def triage_case(
     """
     container = _container(settings)
     case = TriageInput(subject=subject, text=text)
-    result = TriageService(container.audit, tracer=container.tracer).triage(case, actor=actor)
+    result = TriageService(
+        container.audit, default_triage_engine(), tracer=container.tracer
+    ).triage(case, actor=actor)
     review_ref = ""
     if result.requires_human_review:
         review_ref = container.review_router.route(result, maker=actor, tenant=tenant)
@@ -134,7 +137,9 @@ def assess_access(
         requested_role=requested_role,
         current_entitlements=tuple(current_entitlements or ()),
     )
-    result = AccessService(container.audit, tracer=container.tracer).assess(request, actor=actor)
+    result = AccessService(
+        container.audit, default_access_engine(), tracer=container.tracer
+    ).assess(request, actor=actor)
     review_ref = container.review_router.route(result, maker=actor, tenant=tenant, action="access")
     payload = _redacted(to_jsonable(result))
     if not isinstance(payload, dict):  # pragma: no cover - dataclasses serialise to objects

@@ -11,6 +11,7 @@ from ..config import build_container
 from ..domain.access_service import AccessService
 from ..domain.models import AccessRequest, TriageInput
 from ..domain.triage_service import TriageService
+from ..packs import default_access_engine, default_triage_engine
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -43,7 +44,7 @@ def main(argv: list[str] | None = None) -> int:
     configure_logging(container.settings.profile, service="itsm-servicedesk-triage")
 
     if args.command == "triage":
-        service = TriageService(container.audit, tracer=container.tracer)
+        service = TriageService(container.audit, default_triage_engine(), tracer=container.tracer)
         result = service.triage(TriageInput(subject=args.subject, text=args.text), actor=args.actor)
         print(f"{result.subject}: {result.severity.value} ({result.decision.value})")
         print(f"  requires_human_review: {result.requires_human_review}")
@@ -55,7 +56,9 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "access":
-        access_service = AccessService(container.audit, tracer=container.tracer)
+        access_service = AccessService(
+            container.audit, default_access_engine(), tracer=container.tracer
+        )
         decision = access_service.assess(
             AccessRequest(
                 request_ref=args.request_ref,

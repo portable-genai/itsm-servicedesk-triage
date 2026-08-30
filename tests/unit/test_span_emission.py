@@ -25,6 +25,7 @@ from itsm_servicedesk_triage.config import Settings, build_container
 from itsm_servicedesk_triage.domain.access_service import AccessService
 from itsm_servicedesk_triage.domain.models import AccessRequest, TriageInput
 from itsm_servicedesk_triage.domain.triage_service import TriageService
+from itsm_servicedesk_triage.packs import default_access_engine, default_triage_engine
 
 from tests.fixtures import sample_cases
 
@@ -62,7 +63,7 @@ class _RecordingTracer:
 def _triage(case: TriageInput) -> _RecordingTracer:
     tracer = _RecordingTracer()
     container = build_container(Settings(profile="local", audit_path=":memory:"))
-    service = TriageService(container.audit, tracer=tracer)  # type: ignore[arg-type]
+    service = TriageService(container.audit, default_triage_engine(), tracer=tracer)  # type: ignore[arg-type]
     service.triage(case, actor=sample_cases.ACTOR)
     return tracer
 
@@ -70,7 +71,7 @@ def _triage(case: TriageInput) -> _RecordingTracer:
 def _assess(request: AccessRequest) -> _RecordingTracer:
     tracer = _RecordingTracer()
     container = build_container(Settings(profile="local", audit_path=":memory:"))
-    service = AccessService(container.audit, tracer=tracer)  # type: ignore[arg-type]
+    service = AccessService(container.audit, default_access_engine(), tracer=tracer)  # type: ignore[arg-type]
     service.assess(request, actor=sample_cases.ACTOR)
     return tracer
 
