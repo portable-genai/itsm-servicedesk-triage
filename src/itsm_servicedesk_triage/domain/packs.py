@@ -6,7 +6,10 @@ malformed value REFUSES at load rather than being ignored, because a pack that s
 field it did not recognise is a policy nobody reviewed. This mirrors H2's entitlement-pack
 convention (the wave's shared pack shape); the engines are not shared, only the shape is.
 
-Pure stdlib plus ``yaml`` (itself stdlib-only at runtime); no web framework, no cloud SDK. Every
+Pure stdlib: no parser, no web framework, no cloud SDK. Finding a pack file and parsing its
+YAML is I/O and lives at the config boundary in :mod:`itsm_servicedesk_triage.packs`, which
+hands this module documents that are already plain mappings. Validation is policy and stays
+here. Every
 rule carries its own :class:`~.kernel.Citation` so a routing verdict or a segregation-of-duties
 finding is traceable to a clause.
 """
@@ -15,20 +18,9 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any
 
-import yaml
-
 from .kernel import Citation
-
-#: The default location packs are read from, relative to the process working directory (the repo
-#: root under ``make`` targets and ``/app`` in the image). Overridable by passing an explicit path
-#: to each loader; never read from the environment here (a two-state env read is exactly what the
-#: repo's own gate forbids), so the caller owns any override.
-DEFAULT_PACKS_DIR = Path("config") / "packs"
-_TRIAGE_SUBDIR = "triage"
-_ACCESS_SUBDIR = "access"
 
 
 class PackError(ValueError):
@@ -165,22 +157,16 @@ def _priority_severity_from(raw: Any, *, where: str) -> dict[str, str]:
     return mapping
 
 
-def load_triage_pack(packs_dir: Path | None = None) -> TriagePack:
-    """Load and validate the single triage taxonomy pack.
+def build_triage_pack(document: Any, *, where: str) -> TriagePack:
+    """Validate one already-parsed taxonomy document into a :class:`TriagePack`.
 
-    An explicit directory that does not exist RAISES: somebody named a location and running on an
-    empty taxonomy instead is how an engine ends up routing on no policy at all. Exactly one
-    taxonomy file is expected under ``<packs_dir>/triage``; category ids must be unique.
+    ``where`` names the document's origin so every refusal below points somewhere a reader can
+    open. Which file that was, and that there was exactly one of it, are filesystem facts and
+    belong to the boundary; category ids being unique is policy and belongs here.
     """
-    root = (packs_dir if packs_dir is not None else DEFAULT_PACKS_DIR) / _TRIAGE_SUBDIR
-    if not root.exists():
-        raise PackError(f"triage packs directory {root} does not exist")
-    files = sorted(root.rglob("*.yaml"))
-    if len(files) != 1:
-        raise PackError(f"{root}: expected exactly one triage taxonomy file, found {len(files)}")
-    path = files[0]
-    data = _require_mapping(yaml.safe_load(path.read_text(encoding="utf-8")), where=str(path))
-    _reject_unknown(data, _ALLOWED_TAXONOMY_FIELDS, where=str(path))
+    path = where
+    data = _require_mapping(document, where=where)
+    _reject_unknown(data, _ALLOWED_TAXONOMY_FIELDS, where=where)
     source_id = str(data.get("source_id") or "").strip()
     source_title = str(data.get("source_title") or "").strip()
     if not (source_id and source_title):
@@ -191,9 +177,7 @@ def load_triage_pack(packs_dir: Path | None = None) -> TriagePack:
     categories: list[TriageCategory] = []
     seen: set[str] = set()
     for raw in raw_categories:
-        category = _category_from(
-            raw, source_id=source_id, source_title=source_title, where=str(path)
-        )
+        category = _category_from(raw, source_id=source_id, source_title=source_title, where=path)
         if category.category_id in seen:
             raise PackError(f"{path}: duplicate category_id {category.category_id!r}")
         seen.add(category.category_id)
@@ -206,7 +190,7 @@ def load_triage_pack(packs_dir: Path | None = None) -> TriagePack:
             raise PackError(f"{path}: {field_name} is required")
     return TriagePack(
         categories=tuple(categories),
-        priority_severity=_priority_severity_from(data.get("priority_severity"), where=str(path)),
+        priority_severity=_priority_severity_from(data.get("priority_severity"), where=path),
         default_category=str(data["default_category"]).strip(),
         default_affected_service=str(data["default_affected_service"]).strip(),
         default_priority=default_priority,
@@ -365,22 +349,16 @@ def _conflicts_from(
     return out
 
 
-def load_access_policy(packs_dir: Path | None = None) -> AccessPolicy:
-    """Load and validate the single access / segregation-of-duties policy pack.
+def build_access_policy(document: Any, *, where: str) -> AccessPolicy:
+    """Validate one already-parsed policy document into an :class:`AccessPolicy`.
 
-    An explicit directory that does not exist RAISES. Exactly one policy file is expected under
-    ``<packs_dir>/access``; role ids must be unique. Every entitlement named in an SoD conflict
-    must be grantable by some role, so a conflict can never reference a typo that no role emits.
+    ``where`` names the document's origin, for the same reason as above. Role ids being unique,
+    and every entitlement in an SoD conflict being grantable by some role, are policy rules and
+    stay here; which file the document came from is not.
     """
-    root = (packs_dir if packs_dir is not None else DEFAULT_PACKS_DIR) / _ACCESS_SUBDIR
-    if not root.exists():
-        raise PackError(f"access packs directory {root} does not exist")
-    files = sorted(root.rglob("*.yaml"))
-    if len(files) != 1:
-        raise PackError(f"{root}: expected exactly one access policy file, found {len(files)}")
-    path = files[0]
-    data = _require_mapping(yaml.safe_load(path.read_text(encoding="utf-8")), where=str(path))
-    _reject_unknown(data, _ALLOWED_POLICY_FIELDS, where=str(path))
+    path = where
+    data = _require_mapping(document, where=where)
+    _reject_unknown(data, _ALLOWED_POLICY_FIELDS, where=where)
     source_id = str(data.get("source_id") or "").strip()
     source_title = str(data.get("source_title") or "").strip()
     if not (source_id and source_title):
@@ -390,7 +368,7 @@ def load_access_policy(packs_dir: Path | None = None) -> AccessPolicy:
         raise PackError(f"{path}: 'roles' must be a non-empty list")
     roles: dict[str, Role] = {}
     for raw in raw_roles:
-        role = _role_from(raw, source_id=source_id, source_title=source_title, where=str(path))
+        role = _role_from(raw, source_id=source_id, source_title=source_title, where=path)
         if role.role_id in roles:
             raise PackError(f"{path}: duplicate role_id {role.role_id!r}")
         roles[role.role_id] = role
@@ -399,7 +377,7 @@ def load_access_policy(packs_dir: Path | None = None) -> AccessPolicy:
             data.get("sod_conflicts"),
             source_id=source_id,
             source_title=source_title,
-            where=str(path),
+            where=path,
         )
     )
     grantable = frozenset().union(*(role.entitlements for role in roles.values()))
@@ -413,7 +391,7 @@ def load_access_policy(packs_dir: Path | None = None) -> AccessPolicy:
     return AccessPolicy(
         roles=roles,
         conflicts=conflicts,
-        approval_chains=_approval_chains_from(data.get("approval_chains"), where=str(path)),
+        approval_chains=_approval_chains_from(data.get("approval_chains"), where=path),
         source_id=source_id,
         source_title=source_title,
     )

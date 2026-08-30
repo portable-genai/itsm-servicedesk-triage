@@ -16,12 +16,10 @@ from itsm_servicedesk_triage.domain.models import (
     TriageInput,
     TriageResult,
 )
-from itsm_servicedesk_triage.domain.packs import (
-    load_triage_pack,
-)
 from itsm_servicedesk_triage.domain.triage_engine import (
     TriageEngine,
 )
+from itsm_servicedesk_triage.packs import load_triage_pack
 
 #: A few tickets that land in different bands, so the proof is not about one lucky category.
 _TEXTS: tuple[tuple[str, str], ...] = (

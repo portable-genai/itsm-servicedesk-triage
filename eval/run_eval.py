@@ -52,17 +52,14 @@ from itsm_servicedesk_triage.domain.models import (
     AccessRequest,
     TriageInput,
 )
-from itsm_servicedesk_triage.domain.packs import (
-    AccessPolicy,
-    SoDConflict,
-    load_access_policy,
-)
+from itsm_servicedesk_triage.domain.packs import AccessPolicy, SoDConflict
 from itsm_servicedesk_triage.domain.pii import (
     PII_PATTERNS,
 )
 from itsm_servicedesk_triage.domain.triage_service import (
     TriageService,
 )
+from itsm_servicedesk_triage.packs import default_triage_engine, load_access_policy
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_DATASET = _REPO_ROOT / "eval" / "datasets" / "golden_cases.jsonl"
@@ -295,7 +292,7 @@ def run_smoke(dataset: Path) -> EvalReport:
 
     settings = Settings(profile="local", audit_path=":memory:")
     audit = LocalAuditAdapter(settings)
-    service = TriageService(audit, tracer=LocalNoopTracerAdapter(settings))
+    service = TriageService(audit, default_triage_engine(), tracer=LocalNoopTracerAdapter(settings))
 
     severity_pairs: list[tuple[str, str]] = []
     queue_pairs: list[tuple[str, str]] = []

@@ -79,6 +79,7 @@ from ..config import (
 from ..domain.access_service import AccessService
 from ..domain.models import AccessRequest, TriageInput
 from ..domain.triage_service import TriageService
+from ..packs import default_access_engine, default_triage_engine
 from ..ports.identity import VERIFIED, EndUserAuthUnavailableError
 from .schemas import (
     AccessRequestModel,
@@ -292,7 +293,7 @@ def triage(
     The maker is the verified principal, so the console records who originated the decision.
     """
     container = _container()
-    service = TriageService(container.audit, tracer=container.tracer)
+    service = TriageService(container.audit, default_triage_engine(), tracer=container.tracer)
     result = service.triage(
         TriageInput(subject=request.subject, text=request.text),
         actor=principal.actor,
@@ -319,7 +320,7 @@ def access(
     client-asserted actor in the body.
     """
     container = _container()
-    service = AccessService(container.audit, tracer=container.tracer)
+    service = AccessService(container.audit, default_access_engine(), tracer=container.tracer)
     result = service.assess(
         AccessRequest(
             request_ref=request.request_ref,

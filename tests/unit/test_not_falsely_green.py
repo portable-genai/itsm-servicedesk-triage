@@ -28,6 +28,7 @@ from itsm_servicedesk_triage.adapters.local.tracer import (
 from itsm_servicedesk_triage.domain.triage_service import (
     TriageService,
 )
+from itsm_servicedesk_triage.packs import default_triage_engine
 
 from tests.conftest import local_settings
 from tests.fixtures import sample_cases
@@ -37,7 +38,7 @@ def _persisted_rows() -> list[dict[str, Any]]:
     """Run the REAL pipeline over the ticket that carries planted ids; return the WORM rows."""
     settings = local_settings()
     audit = LocalAuditAdapter(settings)
-    TriageService(audit, tracer=LocalNoopTracerAdapter(settings)).triage(
+    TriageService(audit, default_triage_engine(), tracer=LocalNoopTracerAdapter(settings)).triage(
         sample_cases.PII_TICKET, actor=sample_cases.ACTOR
     )
     return [dict(row) for row in audit.log.read_all()]

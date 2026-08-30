@@ -30,6 +30,7 @@ from itsm_servicedesk_triage.config import (
 from itsm_servicedesk_triage.domain.triage_service import (
     TriageService,
 )
+from itsm_servicedesk_triage.packs import default_triage_engine
 
 from tests.fixtures import sample_cases
 
@@ -53,7 +54,7 @@ def _record_three(settings: Settings) -> LocalAuditAdapter:
     container = build_container(settings)
     audit = container.audit
     assert isinstance(audit, LocalAuditAdapter)
-    service = TriageService(audit, tracer=container.tracer)
+    service = TriageService(audit, default_triage_engine(), tracer=container.tracer)
     for case in (sample_cases.ESCALATING_CASE, sample_cases.ROUTINE_CASE, sample_cases.PII_CASE):
         service.triage(case, actor=sample_cases.ACTOR)
     return audit
@@ -106,9 +107,9 @@ def test_an_append_after_truncation_cannot_relaunder_the_anchor(tmp_path: Path) 
     _truncate_tail(audit)
 
     with pytest.raises(AuditChainError):
-        TriageService(audit, tracer=build_container(settings).tracer).triage(
-            sample_cases.ESCALATING_CASE, actor=sample_cases.ACTOR
-        )
+        TriageService(
+            audit, default_triage_engine(), tracer=build_container(settings).tracer
+        ).triage(sample_cases.ESCALATING_CASE, actor=sample_cases.ACTOR)
     assert Path(settings.audit_anchor_path).read_text(encoding="utf-8") == anchored_before
 
 

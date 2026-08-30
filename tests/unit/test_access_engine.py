@@ -31,11 +31,8 @@ from itsm_servicedesk_triage.domain.models import (
     AccessDecision,
     AccessRequest,
 )
-from itsm_servicedesk_triage.domain.packs import (
-    AccessPolicy,
-    SoDConflict,
-    load_access_policy,
-)
+from itsm_servicedesk_triage.domain.packs import AccessPolicy, SoDConflict
+from itsm_servicedesk_triage.packs import load_access_policy
 
 
 def _engine() -> AccessEngine:

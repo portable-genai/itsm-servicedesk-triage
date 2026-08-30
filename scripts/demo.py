@@ -60,6 +60,7 @@ from itsm_servicedesk_triage.domain.pii import (
 from itsm_servicedesk_triage.domain.triage_service import (
     TriageService,
 )
+from itsm_servicedesk_triage.packs import default_triage_engine
 
 
 def loaded_cloud_sdks() -> tuple[str, ...]:
@@ -277,7 +278,9 @@ class DemoRun:
             tenant=TENANT,
         )
         self.container = build_container(self.settings)
-        self.service = TriageService(self.container.audit, tracer=self.container.tracer)
+        self.service = TriageService(
+            self.container.audit, default_triage_engine(), tracer=self.container.tracer
+        )
         self.results: list[StepResult] = []
         self.cases = 0
         self.escalated = 0
