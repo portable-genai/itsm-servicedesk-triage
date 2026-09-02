@@ -89,9 +89,9 @@ the numbers a check reads placed in the step's `facts` dict rather than only in 
 It is guarded from two directions. `tests/unit/test_demo_surface.py` runs inside `make gate`: it
 holds `demo.STEPS` and `walkthrough.CHECKS` equal so a step cannot narrate a claim nobody checks,
 drives the whole arc against the real adapters, asserts the tamper step actually goes red, and
-fails if a script stops being listed in `scripts/README.md`. The `demo-gate` workflow runs the
-same walkthrough headless on every push, plus `make portability`, `make demo-static` and
-`make docs-check`. Keep the `facts` dicts and the step keys when you diverge; they are the
+fails if a script stops being listed in `scripts/README.md`. The hosted check runs the
+same walkthrough headless on every pull request and every push to main, plus
+`make portability`. Keep the `facts` dicts and the step keys when you diverge; they are the
 contract every stage reads.
 
 ### Does the gate run for my fork out of the box?
