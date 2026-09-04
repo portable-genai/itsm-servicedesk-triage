@@ -36,7 +36,7 @@ plus the controls a model would first require are in [`../model-card.md`](../mod
 
 No, and this is the sharpest boundary in the repo. **Every grant is consequential by
 construction**, so an access decision always sets `requires_human_review`, always reports
-`ESCALATED`, and is always routed to the Hrz7 human-review console in the same call that produced
+`ESCALATED`, and is always routed to the `human-review-console` in the same call that produced
 it (rule R8). Nothing is provisioned in-process. The engine decides eligibility and names the
 approval chain; a human disposes; your IAM or joiner-mover-leaver system performs the grant
 downstream of that disposition. Triage likewise routes a ticket to a queue and never resolves it.
@@ -67,12 +67,12 @@ platform systems. Do not rebuild these in a fork:
 
 | Concern | Owned by | This repo's role today |
 |---|---|---|
-| Human review and maker-checker console | **Hrz7** `human-review-console` | **Wired.** Every escalation is routed to it through the shared `review-kit`, redacted before the wire, with the verified principal as maker (rule R8). |
-| AI-quality and promotion gate | **Hrz4** `model-quality-gate` | **Client half wired.** `eval/run_eval.py --mode gate` asks the authority and refuses to run off the managed profile; the metric bundle is not registered with Hrz4 yet. |
-| Observability, tracing, immutable WORM audit, FinOps | **Hrz5** `agent-observability` | **Tracing half.** The managed tracer exports OTLP to the Hrz5 collector when the endpoint is configured; the audit trail is still this process's own store. |
-| Agent registry, versioning, entitlements | **Hrz3** `agent-registry` | **Not wired.** The A2A card is published but nothing registers it. |
-| Runtime guardrail: prompt-injection defence, output filtering | **Hrz1** `agent-guardrail-gateway` | **Not wired.** No `GuardrailPort` exists. Required before untrusted ticket text reaches any model. |
-| Governed RAG and knowledge base | **Hrz2** `enterprise-knowledge-base` | **Not used.** Nothing retrieves. A KB-article suggestion feature would consume Hrz2, not build a corpus here. |
+| Human review and maker-checker console | `human-review-console` | **Wired.** Every escalation is routed to it through the shared `review-kit`, redacted before the wire, with the verified principal as maker (rule R8). |
+| AI-quality and promotion gate | `model-quality-gate` | **Client half wired.** `eval/run_eval.py --mode gate` asks the authority and refuses to run off the managed profile; the metric bundle is not registered with `model-quality-gate` yet. |
+| Observability, tracing, immutable WORM audit, FinOps | `agent-observability` | **Tracing half.** The managed tracer exports OTLP to the `agent-observability` collector when the endpoint is configured; the audit trail is still this process's own store. |
+| Agent registry, versioning, entitlements | `agent-registry` | **Not wired.** The A2A card is published but nothing registers it. |
+| Runtime guardrail: prompt-injection defence, output filtering | `agent-guardrail-gateway` | **Not wired.** No `GuardrailPort` exists. Required before untrusted ticket text reaches any model. |
+| Governed RAG and knowledge base | `enterprise-knowledge-base` | **Not used.** Nothing retrieves. A KB-article suggestion feature would consume `enterprise-knowledge-base`, not build a corpus here. |
 
 ### What about the rest of the service-desk lifecycle?
 

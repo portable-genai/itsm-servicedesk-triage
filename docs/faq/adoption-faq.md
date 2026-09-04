@@ -73,7 +73,7 @@ equality across all five. The full row-by-row list, including which test enforce
 Deliberately, and not first. See [`../model-card.md`](../model-card.md): the system is model-free
 today, the boundary a model may occupy is already written down (the advisory `TicketSignals`
 hints, never the band or the verdict), and five controls have to exist before a generation port
-is bound, including the Hrz1 guardrail screen and an eval that scores the live model.
+is bound, including the `agent-guardrail-gateway` screen and an eval that scores the live model.
 
 ### How do I add a new surface, or a new deterministic engine?
 

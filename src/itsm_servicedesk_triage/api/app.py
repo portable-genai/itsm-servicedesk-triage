@@ -288,7 +288,8 @@ def triage(
 ) -> TriageResponse:
     """Triage a case; the audit actor is the verified principal, never the request body.
 
-    Rule R8: a result that sets ``requires_human_review`` is ROUTED to the Hrz7 console here,
+    Rule R8: a result that sets ``requires_human_review`` is ROUTED to the human-review-console
+    here,
     in the same request that produced it. Setting the flag is not the escalation; routing is.
     The maker is the verified principal, so the console records who originated the decision.
     """
@@ -314,7 +315,8 @@ def access(
     """Assess an access request; the audit actor and review maker are the verified principal.
 
     Rule R8: every access grant is consequential by construction, so the deterministic engine
-    always sets ``requires_human_review`` and the result is ALWAYS routed to the Hrz7 console in
+    always sets ``requires_human_review`` and the result is ALWAYS routed to the
+    human-review-console in
     the same request that produced it. Nothing provisions here; the engine decides eligibility
     and the approval chain, and a human disposes. The maker is the verified principal, never the
     client-asserted actor in the body.

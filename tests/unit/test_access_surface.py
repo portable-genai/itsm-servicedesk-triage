@@ -1,11 +1,11 @@
 """The access vertical's surfaces: redact-before-audit, R8 routing, API and agent parity.
 
-Slice 3 says every access grant is consequential and routes to Hrz7, and the redact-before-
-anything rule applies to the access path exactly as it does to triage. These tests hold that on
-every surface: the service masks before the audit write, the local router puts a redacted,
-``access``-labelled payload on the wire, a blocked (critical) grant demands dual control, the API
-always returns a routing reference, and the agent tool masks its result before it can reach a
-model.
+Slice 3 says every access grant is consequential and routes to human-review-console, and the
+redact-before- anything rule applies to the access path exactly as it does to triage. These tests
+hold that on every surface: the service masks before the audit write, the local router puts a
+redacted, ``access``-labelled payload on the wire, a blocked (critical) grant demands dual control,
+the API always returns a routing reference, and the agent tool masks its result before it can reach
+a model.
 """
 
 from __future__ import annotations

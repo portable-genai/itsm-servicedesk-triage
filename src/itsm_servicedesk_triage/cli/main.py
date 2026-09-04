@@ -22,7 +22,9 @@ def main(argv: list[str] | None = None) -> int:
     triage_cmd.add_argument("subject")
     triage_cmd.add_argument("text")
     triage_cmd.add_argument("--actor", default="cli-user@bank.example")
-    triage_cmd.add_argument("--tenant", default="", help="Tenant partition asserted to Hrz7.")
+    triage_cmd.add_argument(
+        "--tenant", default="", help="Tenant partition asserted to human-review-console."
+    )
 
     access_cmd = sub.add_parser("access", help="Assess a single access request.")
     access_cmd.add_argument("request_ref")
@@ -36,7 +38,9 @@ def main(argv: list[str] | None = None) -> int:
         help="An entitlement the subject already holds (repeatable).",
     )
     access_cmd.add_argument("--actor", default="cli-user@bank.example")
-    access_cmd.add_argument("--tenant", default="", help="Tenant partition asserted to Hrz7.")
+    access_cmd.add_argument(
+        "--tenant", default="", help="Tenant partition asserted to human-review-console."
+    )
 
     args = parser.parse_args(argv)
     container = build_container()

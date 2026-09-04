@@ -13,8 +13,8 @@ file is written for a specific audience; skim the one that matches your role.
 | [compliance-faq.md](compliance-faq.md) | Compliance / operational risk / model risk | maker-checker, residency, the audit trail, the eval gate, and which rows are still open |
 
 These FAQs deliberately do **not** re-document capabilities owned by sibling systems in the
-catalog. Where a concern belongs to another repo (the guardrail gateway Hrz1, the knowledge base
-Hrz2, the agent registry Hrz3, the quality gate Hrz4, observability and WORM audit Hrz5, the
-human-review console Hrz7), the FAQ points at it and explains where this repo's responsibility
+catalog. Where a concern belongs to another repo (the guardrail gateway `agent-guardrail-gateway`, the knowledge base
+`enterprise-knowledge-base`, the agent registry `agent-registry`, the quality gate `model-quality-gate`, observability and WORM audit `agent-observability`, the
+human-review console `human-review-console`), the FAQ points at it and explains where this repo's responsibility
 stops rather than duplicating it. See [features-faq.md](features-faq.md) for the full "what this
 repo owns vs what it integrates" map, and [`../ADOPTING.md`](../ADOPTING.md) for the fork path.
