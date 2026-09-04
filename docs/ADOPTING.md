@@ -35,7 +35,7 @@ imports nothing from this vertical; `domain/models.py` holds only the H3 artifac
 
 If your product is another **deterministic worksheet plus human disposition** service (an
 approval gate, an entitlement review, a request router), the hexagon, the three profiles, the
-anchored audit chain, the eval gate and the Hrz7 review routing transfer directly. You replace
+anchored audit chain, the eval gate and the `human-review-console` review routing transfer directly. You replace
 the two packs and `domain/models.py`, and retune the thresholds.
 
 Two engine constants are NOT in a pack today, and they are worth knowing about before you fork:
@@ -161,20 +161,20 @@ table in [`COMPLIANCE.md`](../COMPLIANCE.md), and this is its summary.
 
 | Concern | Owned by | Wired here today? |
 |---|---|---|
-| Human review and maker-checker console | **Hrz7** `human-review-console` | **Yes.** `ports/review_router.py` with an adapter in every profile, on the shared `review-kit` (a hard dependency, not an extra). `review_url` comes from `HUMAN_REVIEW_URL`; the managed router REFUSES when no console is configured rather than swallowing an escalation (rule R8, Covered). |
-| AI-quality and promotion gate | **Hrz4** `model-quality-gate` | **Client half only.** `adapters/gcp/evaluation.py` asks the Hrz4 authority through `agent-eval-kit`, under bundle name `itsm-servicedesk-triage` at `ITSMDESK_QUALITY_URL`, and refuses to run off the managed profile. The bundle and its thresholds are NOT registered with Hrz4 yet (P-08 / R5). |
-| Observability, tracing and enterprise WORM audit | **Hrz5** `agent-observability` | **Tracing half only.** The tracer port is bound in every profile and the managed adapter exports OTLP to the Hrz5 collector when `OTEL_EXPORTER_OTLP_ENDPOINT` is set. The audit trail is still this process's own hash-chained store; no observability client is bound to the shared sink (R2). |
-| Agent registry, versioning, entitlements | **Hrz3** `agent-registry` | **No.** The agent publishes an A2A card at `/.well-known/agent-card.json` built from the same tool table the runtime binds, but nothing registers it and the agent takes no identity or entitlements from Hrz3 (R4). |
-| Runtime guardrail: prompt-injection defence, output filtering | **Hrz1** `agent-guardrail-gateway` | **No.** There is no `GuardrailPort`. PII redaction is in-repo through the shared `pii-kit`, which is not the same control. Bind the guardrail before any untrusted ticket text reaches a model (R1). |
-| Governed RAG and knowledge base | **Hrz2** `enterprise-knowledge-base` | **No, and not needed today.** Nothing retrieves; the engines compute from the packs. A fork that adds a KB article suggestion must add a `KnowledgeBasePort` bound to Hrz2 and make empty retrieval a hard error (R3, P-05). |
-| Project intake validation | **Rsk3** `architecture-validator` | **No.** An intake action rather than a code control; record the validation reference in `COMPLIANCE.md` when the project passes (R6). |
+| Human review and maker-checker console | `human-review-console` | **Yes.** `ports/review_router.py` with an adapter in every profile, on the shared `review-kit` (a hard dependency, not an extra). `review_url` comes from `HUMAN_REVIEW_URL`; the managed router REFUSES when no console is configured rather than swallowing an escalation (rule R8, Covered). |
+| AI-quality and promotion gate | `model-quality-gate` | **Client half only.** `adapters/gcp/evaluation.py` asks the `model-quality-gate` authority through `agent-eval-kit`, under bundle name `itsm-servicedesk-triage` at `ITSMDESK_QUALITY_URL`, and refuses to run off the managed profile. The bundle and its thresholds are NOT registered with `model-quality-gate` yet (P-08 / R5). |
+| Observability, tracing and enterprise WORM audit | `agent-observability` | **Tracing half only.** The tracer port is bound in every profile and the managed adapter exports OTLP to the `agent-observability` collector when `OTEL_EXPORTER_OTLP_ENDPOINT` is set. The audit trail is still this process's own hash-chained store; no observability client is bound to the shared sink (R2). |
+| Agent registry, versioning, entitlements | `agent-registry` | **No.** The agent publishes an A2A card at `/.well-known/agent-card.json` built from the same tool table the runtime binds, but nothing registers it and the agent takes no identity or entitlements from `agent-registry` (R4). |
+| Runtime guardrail: prompt-injection defence, output filtering | `agent-guardrail-gateway` | **No.** There is no `GuardrailPort`. PII redaction is in-repo through the shared `pii-kit`, which is not the same control. Bind the guardrail before any untrusted ticket text reaches a model (R1). |
+| Governed RAG and knowledge base | `enterprise-knowledge-base` | **No, and not needed today.** Nothing retrieves; the engines compute from the packs. A fork that adds a KB article suggestion must add a `KnowledgeBasePort` bound to `enterprise-knowledge-base` and make empty retrieval a hard error (R3, P-05). |
+| Project intake validation | `architecture-validator` | **No.** An intake action rather than a code control; record the validation reference in `COMPLIANCE.md` when the project passes (R6). |
 
 Two boundaries worth stating plainly, because they are where a fork is most tempted to overreach:
 
 - **This repo does not provision access.** The access engine produces an eligibility verdict, the
   entitlement union a reviewer would be approving, the findings and the approval chain. Granting
   the entitlement is your IAM or joiner-mover-leaver system's job, downstream of the human
-  disposition Hrz7 records.
+  disposition `human-review-console` records.
 - **This repo does not run a model.** See [`model-card.md`](model-card.md). Adding one is a real
   change with real prerequisites, not a configuration flip.
 
@@ -190,5 +190,5 @@ Two boundaries worth stating plainly, because they are where a fork is most temp
 - [ ] Rebuilt both eval golden sets and revisited `THRESHOLDS`.
 - [ ] Pointed `ITSMDESK_AUDIT_PATH` at durable storage and set `ITSMDESK_AUDIT_ANCHOR` on a different volume.
 - [ ] Reviewed the deploy posture (Dockerfile, Terraform toggles, WORM retention and lock, bind address).
-- [ ] Wired your Hrz7 endpoint and decided which other sibling services you integrate vs leave open.
+- [ ] Wired your `human-review-console` endpoint and decided which other sibling services you integrate vs leave open.
 - [ ] Recorded your baseline upstream tag so you can take future fixes.

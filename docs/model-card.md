@@ -53,7 +53,7 @@ engine reads only to detect disagreement and surfaces as `model_agreed`. Specifi
   (`domain/triage_service.py`), the outbound review payload (`adapters/_review_payload.py`) and
   the agent tool result (`agent/tools.py`, because a tool result becomes a model's context);
 - every result still carries its `Citation` back to the pack clause that decided it;
-- an escalated result still routes to the Hrz7 human-review console in the same call that
+- an escalated result still routes to the `human-review-console` in the same call that
   produced it (rule R8), and an access decision is consequential by construction, so it always
   routes and nothing is provisioned in-process.
 
@@ -70,9 +70,9 @@ engine reads only to detect disagreement and surfaces as `model_agreed`. Specifi
    request rate limit, and a switch that forces deterministic-only operation with the model off.
 4. **An eval that scores the live model.** `eval/run_eval.py` today scores the deterministic
    engines against hand-labelled `expected_*` oracles, and every metric is proven able to go red
-   before its green is trusted. Add a managed-profile run through the Hrz4 promotion gate that
+   before its green is trusted. Add a managed-profile run through the `model-quality-gate` promotion gate that
    scores the model's own classification against the same golden sets.
-5. **Prompt-injection screening on the ticket text**, through the Hrz1 guardrail gateway, failing
+5. **Prompt-injection screening on the ticket text**, through the `agent-guardrail-gateway`, failing
    closed to deterministic-only when the screen is unavailable. A ticket body is untrusted text
    written by whoever raised the ticket. This is the open R1 row in `COMPLIANCE.md`; PII
    redaction through `pii-kit` is a different control and does not substitute for it.

@@ -1,7 +1,7 @@
-"""ReviewRouterPort: the boundary that routes an escalated result to Hrz7 (rule R8).
+"""ReviewRouterPort: the boundary that routes an escalated result to human-review-console (rule R8).
 
 Rule R8 is the reason this port exists. A producer that sets ``requires_human_review`` MUST hand
-the item to the Hrz7 Human-Review and Maker-Checker Console; terminating the escalation in a
+the item to the human-review-console; terminating the escalation in a
 per-repo boolean is the failure this port removes, because a flag nobody reads is
 auto-execution with extra steps. Setting the flag and calling :meth:`route` is one act, not two
 optional ones: ``api.app`` and the CLI both call it on every escalated result.
@@ -22,7 +22,7 @@ class ReviewRouterPort(Protocol):
     def route(
         self, result: ReviewableResult, *, maker: str, tenant: str = "", action: str = "review"
     ) -> str:
-        """Route an escalated result to Hrz7 and return the routing reference.
+        """Route an escalated result to human-review-console and return the routing reference.
 
         ``result`` is any :class:`~..domain.kernel.ReviewableResult`: both this vertical's
         producers (ticket triage and access provisioning) satisfy it, so one router serves every

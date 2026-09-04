@@ -16,7 +16,7 @@ to a queue a human works. `CRITICAL` demands two approvals.
 Crucially the escalation is not a per-repo boolean: setting the flag and calling
 `ReviewRouterPort.route` is one act, performed by the API, the CLI and the agent tool in the same
 call that produced the result (rule R8), and `tests/unit/test_review_routing.py` asserts the
-routing rather than the flag. The console is the sibling **Hrz7** system; the managed router
+routing rather than the flag. The console is the sibling `human-review-console` system; the managed router
 REFUSES when no console is configured rather than swallowing an escalation.
 
 ### Is a model involved in any decision?
@@ -39,7 +39,7 @@ hash-chained with an EXTERNAL head anchor, because a chain alone cannot detect a
 `tests/unit/test_audit_anchor.py` proves the detection and proves the control case goes undetected
 without the anchor. In the managed profile the trail lands in a locked Cloud Logging WORM bucket
 (`infra/terraform/logging_worm.tf`, retention floor 180 days, CMEK-encrypted, and the lock is
-IRREVERSIBLE once applied). The enterprise WORM and trace sink is the sibling **Hrz5** system, and
+IRREVERSIBLE once applied). The enterprise WORM and trace sink is the sibling `agent-observability` system, and
 binding the audit half to it is still open (rule R2).
 
 ### How is personal data minimised?
@@ -49,7 +49,7 @@ payload leaves the process (against every jurisdiction's rows, because the conso
 sink), and before a tool result can enter a model's context. The jurisdiction list is a
 deployment choice in `domain/pii.py`. The safety metric is scored two ways in the eval, at a
 `pii_safety >= 0.99` threshold, and `tests/unit/test_not_falsely_green.py` proves that metric can
-go red. The runtime guardrail and output filtering themselves are the sibling **Hrz1** gateway,
+go red. The runtime guardrail and output filtering themselves are the sibling `agent-guardrail-gateway`,
 which is NOT bound here yet (rule R1).
 
 ### Is data residency enforced, or only documented?
@@ -77,8 +77,8 @@ verdict: `decision_accuracy` and `routing_accuracy` at 0.80, `pii_safety` at 0.9
 `sod_precision` and `sod_recall` at 1.00 (a segregation-of-duties engine that misses a toxic
 combination has failed at its only job). Every metric is proven ABLE TO GO RED on a degraded
 input before its green is trusted. `--mode gate` delegates the promotion verdict to the sibling
-**Hrz4** authority and refuses to run off the managed profile, under bundle name
-`itsm-servicedesk-triage`. Registering that bundle and its thresholds with Hrz4 is still open
+`model-quality-gate` authority and refuses to run off the managed profile, under bundle name
+`itsm-servicedesk-triage`. Registering that bundle and its thresholds with `model-quality-gate` is still open
 (P-08 and R5).
 
 ### Which rows are still open?
@@ -87,7 +87,7 @@ Read `COMPLIANCE.md` for the authoritative list; the summary is that P-02 (ports
 P-04 (data minimisation), P-06 (maker-checker), P-07 (auditability), P-12 (reversibility) and R8
 (routed escalations) are Covered with a test behind each; P-01, P-03, P-08, P-09, R1, R2, R4, R5
 and tenant isolation are Partial with the missing half named; P-05 (grounding), P-10 (resilience,
-including the CPS 230 recovery objectives), P-11 (cost and latency) and R6 (Rsk3 intake) are
+including the CPS 230 recovery objectives), P-11 (cost and latency) and R6 (`architecture-validator` intake) are
 explicit `TODO (repo owner)` rows. Several of those are open precisely because there is no model
 and no retrieval yet, and claiming them would be worse than owing them. The practices audit
 (`docs/practices-audit.md`) carries the same discipline per check.

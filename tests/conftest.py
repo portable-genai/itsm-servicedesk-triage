@@ -53,7 +53,8 @@ def local_settings(**overrides: Any) -> Settings:
     return Settings(**base)
 
 
-#: The fields of an outbound Hrz7 review that carry CASE CONTENT rather than attribution.
+#: The fields of an outbound human-review-console review that carry CASE CONTENT rather than
+#: attribution.
 #: ``maker`` is the VERIFIED principal and is an address by design, exactly like the audit row's
 #: ``actor``, and ``tenant`` is a partition name; a pattern scan over the whole payload would
 #: therefore flag the two fields whose job is to say WHO and WHERE, could never go green, and a
@@ -80,7 +81,9 @@ def audit_content(rows: Iterable[Mapping[str, Any]]) -> str:
 
 
 def outbound_content(review: Any) -> str:
-    """The CONTENT-bearing fields of an outbound Hrz7 review payload, as one scannable string."""
+    """The CONTENT-bearing fields of an outbound human-review-console review payload, as one
+    scannable string.
+    """
     payload = review.to_payload()
     return json.dumps([payload[field] for field in _REVIEW_CONTENT_FIELDS], default=str)
 

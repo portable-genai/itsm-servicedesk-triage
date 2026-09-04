@@ -60,9 +60,9 @@ today, national rows first, universal email and phone rows last).
 ## Is there a runtime guardrail for prompt injection?
 
 No, and that is the honest answer rather than an oversight. There is no `GuardrailPort` and no
-Hrz1 gateway binding; `COMPLIANCE.md` carries R1 as Partial with exactly that TODO. It matters
+`agent-guardrail-gateway` binding; `COMPLIANCE.md` carries R1 as Partial with exactly that TODO. It matters
 less today than it will tomorrow, because [there is no model in the path](../model-card.md): a
-ticket body is untrusted text, but nothing interprets it as instructions. Bind the Hrz1 guardrail
+ticket body is untrusted text, but nothing interprets it as instructions. Bind the `agent-guardrail-gateway`
 before any model is introduced. PII redaction is a different control and does not substitute.
 
 ## Are there secrets in the repo?
@@ -75,10 +75,10 @@ Practices check C10 covers this.
 
 ## What about outbound service-to-service calls?
 
-Two exist. The review router submits an escalation to the Hrz7 console over S2S through the shared
+Two exist. The review router submits an escalation to the `human-review-console` over S2S through the shared
 `review-kit`, which refuses a plaintext non-loopback URL and a missing bearer at
 construction, and the managed router REFUSES when no console is configured rather than swallowing
-an escalation. The Hrz4 promotion-gate client (`adapters/gcp/evaluation.py`) is the other, and it
+an escalation. The `model-quality-gate` promotion-gate client (`adapters/gcp/evaluation.py`) is the other, and it
 refuses to run off the managed profile. Inbound service callers go through
 `make_require_service_caller` from the commons.
 
@@ -116,9 +116,9 @@ posture is checked rather than described.
 
 ## What is explicitly out of scope for this repo?
 
-The guardrail gateway (Hrz1), the governed knowledge base (Hrz2), the agent registry (Hrz3), the
-AI-quality gate (Hrz4), the enterprise WORM audit store and trace sink (Hrz5), and the
-human-review console (Hrz7). Only Hrz7 is fully wired today; see
+The guardrail gateway (`agent-guardrail-gateway`), the governed knowledge base (`enterprise-knowledge-base`), the agent registry (`agent-registry`), the
+AI-quality gate (`model-quality-gate`), the enterprise WORM audit store and trace sink (`agent-observability`), and the
+human-review console (`human-review-console`). Only `human-review-console` is fully wired today; see
 [features-faq.md](features-faq.md) for the boundary map and
 [compliance-faq.md](compliance-faq.md) for the open rows. Also out of scope: performing the
 access grant, which is your IAM system's job.

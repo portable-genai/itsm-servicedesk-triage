@@ -39,8 +39,8 @@ imports nothing outside the standard library and this package.
   outbox (deliberately not a no-op), a no-op tracer, and an offline evaluator that scores but
   REFUSES to promote, because a promotion certified by a laptop with no quality service is
   certified by nothing.
-- **`gcp`**: the managed family. Cloud Logging WORM, IAP identity, OTLP or Cloud Trace, the Hrz4
-  promotion gate, the Hrz7 console over S2S. Every SDK import is LAZY, inside the method, so the
+- **`gcp`**: the managed family. Cloud Logging WORM, IAP identity, OTLP or Cloud Trace, the `model-quality-gate`
+  promotion gate, the `human-review-console` over S2S. Every SDK import is LAZY, inside the method, so the
   other two profiles import this package with no cloud SDK installed.
 - **`onprem`**: fail-fast placeholders that satisfy the same Protocols and RAISE rather than
   pretending, naming the migration target. A placeholder that returned successfully would be a
@@ -96,7 +96,7 @@ is in `infra/terraform/` and gated on `var.enable_org_policies` and `var.enable_
 
 Tamper evidence is scoped to what the local sink can prove, and `portability_demo.py` says so
 rather than overclaiming: production non-rewritability is the managed WORM sink's job (the locked
-Cloud Logging bucket, and Hrz5 at the enterprise level). The managed identity adapter's
+Cloud Logging bucket, and `agent-observability` at the enterprise level). The managed identity adapter's
 guarantees are IAP's, so an on-premises deployment substitutes its own IdP and its own assurance.
 And nothing in the offline gate runs `terraform test`, so the residency assertions in
 `infra/terraform/production_edge.tftest.hcl` are only as current as the last time somebody ran

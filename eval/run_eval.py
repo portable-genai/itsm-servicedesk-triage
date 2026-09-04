@@ -4,11 +4,10 @@
 Two named layers via ``--mode`` (the scaffold is ``agent_eval_kit.eval_main``):
 
 * **smoke** (default) - the offline pre-merge check CI runs on every change: it drives the real
-  ``TriageService`` and ``AccessEngine`` against golden sets with SDK-free local adapters and
-  scores five metrics, each against the dataset's OWN hand-labelled ``expected_*`` oracle, never
-  against the pipeline's own verdict.
-* **gate** - the promotion verdict from the shared Hrz4 authority (requires the ``gcp``
-  profile), via ``agent_eval_kit.PromotionGateClient``.
+  ``TriageService`` and ``AccessEngine`` against golden sets with SDK-free local adapters and scores
+  five metrics, each against the dataset's OWN hand-labelled ``expected_*`` oracle, never against
+  the pipeline's own verdict. * **gate** - the promotion verdict from the shared model-quality-gate
+  authority (requires the ``gcp`` profile), via ``agent_eval_kit.PromotionGateClient``.
 
 Every smoke metric is proven ABLE TO GO RED before the real scores are trusted (a metric that
 cannot fail proves nothing): ``_prove_metrics_can_go_red`` runs ``agent_eval_kit.assert_can_go_red``
@@ -72,7 +71,8 @@ THRESHOLDS: dict[str, float] = {
     "sod_precision": 1.00,
     "sod_recall": 1.00,
 }
-#: The registered Hrz4 metric bundle for this vertical (Hrz4 owns the metrics + thresholds).
+#: The registered model-quality-gate metric bundle for this vertical (model-quality-gate owns the
+#: metrics + thresholds).
 _BUNDLE = "itsm-servicedesk-triage"
 
 #: A checksum-valid synthetic NRIC, and a raw summary carrying it, for the pii_safety red proof:
@@ -352,6 +352,6 @@ if __name__ == "__main__":
             smoke=run_smoke,
             gate=run_gate,
             default_dataset=DEFAULT_DATASET,
-            description="Offline / Hrz4 evaluation gate for H3.",
+            description="Offline / model-quality-gate for H3.",
         )
     )
