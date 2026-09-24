@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel
 
 from ..domain.models import AccessDecision, TriageResult
@@ -25,14 +27,17 @@ class TriageResponse(BaseModel):
     summary: str
     requires_human_review: bool
     #: Where the escalation WENT (rule R8): the human-review-console review id, or the local queue
-    #: reference.
-    #: Empty only when the result did not escalate. A caller can tell a routed escalation from
-    #: a flag that stopped here, which is the whole point of the rule.
+    #: reference. Empty exactly when ``review_routing`` is not ``routed``.
     review_ref: str = ""
+    #: What happened to the hand-off: routed, failed, off or not_required. ``failed`` means the
+    #: result is NOT queued for review, and the console says so.
+    review_routing: Literal["routed", "failed", "off", "not_required"] = "not_required"
     citations: list[CitationModel] = []
 
     @classmethod
-    def from_domain(cls, result: TriageResult, *, review_ref: str = "") -> TriageResponse:
+    def from_domain(
+        cls, result: TriageResult, *, review_ref: str = "", review_routing: str = "not_required"
+    ) -> TriageResponse:
         return cls(
             subject=result.subject,
             severity=result.severity.value,
@@ -40,6 +45,7 @@ class TriageResponse(BaseModel):
             summary=result.summary,
             requires_human_review=result.requires_human_review,
             review_ref=review_ref,
+            review_routing=review_routing,  # type: ignore[arg-type]
             citations=[
                 CitationModel(source_id=c.source_id, title=c.title, snippet=c.snippet)
                 for c in result.citations
@@ -67,10 +73,12 @@ class AccessResponse(BaseModel):
     decision: str
     summary: str
     requires_human_review: bool
-    #: Where the approval WENT (rule R8). Every access grant is consequential, so this is always
-    #: populated: an empty value would mean an access decision escaped human review, which the
-    #: engine never permits.
+    #: Where the approval WENT (rule R8). Every access grant is consequential, so this is empty
+    #: only when the hand-off did not reach the console, and ``review_routing`` says why.
     review_ref: str = ""
+    #: What happened to the hand-off: routed, failed, off or not_required. ``failed`` means the
+    #: decision is NOT queued for approval, and the console says so.
+    review_routing: Literal["routed", "failed", "off", "not_required"] = "not_required"
     status: str = "computed"
     requested_role: str = ""
     role_risk_tier: str = ""
@@ -85,7 +93,9 @@ class AccessResponse(BaseModel):
     citations: list[CitationModel] = []
 
     @classmethod
-    def from_domain(cls, result: AccessDecision, *, review_ref: str = "") -> AccessResponse:
+    def from_domain(
+        cls, result: AccessDecision, *, review_ref: str = "", review_routing: str = "not_required"
+    ) -> AccessResponse:
         return cls(
             subject=result.subject,
             severity=result.severity.value,
@@ -93,6 +103,7 @@ class AccessResponse(BaseModel):
             summary=result.summary,
             requires_human_review=result.requires_human_review,
             review_ref=review_ref,
+            review_routing=review_routing,  # type: ignore[arg-type]
             status=result.status.value,
             requested_role=result.requested_role,
             role_risk_tier=result.role_risk_tier,

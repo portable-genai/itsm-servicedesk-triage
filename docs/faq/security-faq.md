@@ -77,8 +77,7 @@ Practices check C10 covers this.
 
 Two exist. The review router submits an escalation to the `human-review-console` over S2S through the shared
 `review-kit`, which refuses a plaintext non-loopback URL and a missing bearer at
-construction, and the managed router REFUSES when no console is configured rather than swallowing
-an escalation. The `model-quality-gate` promotion-gate client (`adapters/gcp/evaluation.py`) is the other, and it
+construction, and the managed profile REFUSES TO BOOT with routing on and no console configured, and every response reports `review_routing`, so a failed hand-off is visible rather than swallowed (`ITSMDESK_REVIEW_ROUTING` switches routing). The `model-quality-gate` promotion-gate client (`adapters/gcp/evaluation.py`) is the other, and it
 refuses to run off the managed profile. Inbound service callers go through
 `make_require_service_caller` from the commons.
 

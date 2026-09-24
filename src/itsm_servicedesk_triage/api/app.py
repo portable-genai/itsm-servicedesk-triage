@@ -67,6 +67,7 @@ from hex_service_kit.web import (
     make_require_service_caller,
 )
 
+from ..adapters.controls import RecordingReviewRouter
 from ..config import (
     LOCAL_PROFILE,
     Container,
@@ -299,12 +300,13 @@ def triage(
         TriageInput(subject=request.subject, text=request.text),
         actor=principal.actor,
     )
-    review_ref = ""
-    if result.requires_human_review:
-        review_ref = container.review_router.route(
-            result, maker=principal.actor, tenant=principal.tenant
-        )
-    return TriageResponse.from_domain(result, review_ref=review_ref)
+    # The hand-off never fails an already-scored, already-audited triage; the response says
+    # what happened to it instead (the fleet's runtime-control contract).
+    routing = RecordingReviewRouter(container.review_router)
+    review_ref = routing.route(result, maker=principal.actor, tenant=principal.tenant)
+    return TriageResponse.from_domain(
+        result, review_ref=review_ref, review_routing=routing.outcome.value
+    )
 
 
 @app.post("/v1/access", response_model=AccessResponse, tags=["artifacts"])
@@ -332,10 +334,13 @@ def access(
         ),
         actor=principal.actor,
     )
-    review_ref = container.review_router.route(
+    routing = RecordingReviewRouter(container.review_router)
+    review_ref = routing.route(
         result, maker=principal.actor, tenant=principal.tenant, action="access"
     )
-    return AccessResponse.from_domain(result, review_ref=review_ref)
+    return AccessResponse.from_domain(
+        result, review_ref=review_ref, review_routing=routing.outcome.value
+    )
 
 
 @app.post("/v1/audit/ping", dependencies=[Depends(require_service_caller)], tags=["ops"])
