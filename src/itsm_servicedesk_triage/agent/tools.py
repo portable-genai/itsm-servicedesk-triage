@@ -21,6 +21,7 @@ from typing import TYPE_CHECKING, Any
 from hex_service_kit.serialization import to_jsonable
 from pii_kit import redact
 
+from ..adapters.controls import RecordingReviewRouter
 from ..config import Container, Settings, build_container
 from ..domain.access_service import AccessService
 from ..domain.models import AccessRequest, TriageInput
@@ -79,24 +80,24 @@ def triage_case(
 
     Returns:
       A JSON-safe result dict with every string masked for personal data (P-04: a tool result
-      goes into a model's context), plus ``review_ref``: where the escalation WENT. It is empty
-      only when the result did not escalate, so a caller can tell a routed escalation from a
-      flag nobody read.
+      goes into a model's context), plus ``review_ref``: where the escalation WENT, and
+      ``review_routing``: routed, failed, off or not_required. The reference is empty unless the
+      hand-off was routed, so a caller can tell a routed escalation from a flag nobody read.
     """
     container = _container(settings)
     case = TriageInput(subject=subject, text=text)
     result = TriageService(
         container.audit, default_triage_engine(), tracer=container.tracer
     ).triage(case, actor=actor)
-    review_ref = ""
-    if result.requires_human_review:
-        review_ref = container.review_router.route(result, maker=actor, tenant=tenant)
+    routing = RecordingReviewRouter(container.review_router)
+    review_ref = routing.route(result, maker=actor, tenant=tenant)
     payload = _redacted(to_jsonable(result))
     if not isinstance(payload, dict):  # pragma: no cover - dataclasses serialise to objects
         raise TypeError("a triage result must serialise to a JSON object")
     # Attached after the redaction pass: it is a routing reference, not narrative text, and
     # masking an identifier would break the caller's ability to look the review up.
     payload["review_ref"] = review_ref
+    payload["review_routing"] = routing.outcome.value
     return payload
 
 
@@ -126,9 +127,10 @@ def assess_access(
 
     Returns:
       A JSON-safe result dict with every string masked for personal data (P-04: a tool result
-      goes into a model's context), plus ``review_ref``: where the approval WENT. It is never
-      empty, because an access decision that escaped human review is a state the engine does not
-      produce.
+      goes into a model's context), plus ``review_ref``: where the approval WENT, and
+      ``review_routing``: what happened to the hand-off. Every access decision requires review,
+      so the reference is empty only when the hand-off failed or routing is switched off, and
+      ``review_routing`` says which.
     """
     container = _container(settings)
     request = AccessRequest(
@@ -140,12 +142,14 @@ def assess_access(
     result = AccessService(
         container.audit, default_access_engine(), tracer=container.tracer
     ).assess(request, actor=actor)
-    review_ref = container.review_router.route(result, maker=actor, tenant=tenant, action="access")
+    routing = RecordingReviewRouter(container.review_router)
+    review_ref = routing.route(result, maker=actor, tenant=tenant, action="access")
     payload = _redacted(to_jsonable(result))
     if not isinstance(payload, dict):  # pragma: no cover - dataclasses serialise to objects
         raise TypeError("an access decision must serialise to a JSON object")
     # Attached after the redaction pass: it is a routing reference, not narrative text.
     payload["review_ref"] = review_ref
+    payload["review_routing"] = routing.outcome.value
     return payload
 
 

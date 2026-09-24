@@ -16,8 +16,7 @@ to a queue a human works. `CRITICAL` demands two approvals.
 Crucially the escalation is not a per-repo boolean: setting the flag and calling
 `ReviewRouterPort.route` is one act, performed by the API, the CLI and the agent tool in the same
 call that produced the result (rule R8), and `tests/unit/test_review_routing.py` asserts the
-routing rather than the flag. The console is the sibling `human-review-console` system; the managed router
-REFUSES when no console is configured rather than swallowing an escalation.
+routing rather than the flag. The console is the sibling `human-review-console` system; the managed profile REFUSES TO BOOT with routing on and no console configured, and every response reports `review_routing`, so a failed hand-off is visible rather than swallowed (`ITSMDESK_REVIEW_ROUTING` switches routing).
 
 ### Is a model involved in any decision?
 

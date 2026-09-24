@@ -7,6 +7,7 @@ import sys
 
 from hex_service_kit.logging import configure_logging
 
+from ..adapters.controls import RecordingReviewRouter
 from ..config import build_container
 from ..domain.access_service import AccessService
 from ..domain.models import AccessRequest, TriageInput
@@ -55,8 +56,9 @@ def main(argv: list[str] | None = None) -> int:
         if result.requires_human_review:
             # Rule R8 on the CLI path too: the same escalation, the same router. A surface that
             # only printed the flag would be a second place for an escalation to stop.
-            ref = container.review_router.route(result, maker=args.actor, tenant=args.tenant)
-            print(f"  routed to human review: {ref}")
+            routing = RecordingReviewRouter(container.review_router)
+            ref = routing.route(result, maker=args.actor, tenant=args.tenant)
+            print(f"  human review hand-off : {routing.outcome.value} {ref}".rstrip())
         return 0
 
     if args.command == "access":
@@ -82,10 +84,9 @@ def main(argv: list[str] | None = None) -> int:
         print(f"  approval chain: {' -> '.join(decision.approval_chain)}")
         # Rule R8: every access grant is consequential, so it always routes. There is no branch
         # that provisions without a human, which is the whole point of the access engine.
-        ref = container.review_router.route(
-            decision, maker=args.actor, tenant=args.tenant, action="access"
-        )
-        print(f"  routed to human review: {ref}")
+        routing = RecordingReviewRouter(container.review_router)
+        ref = routing.route(decision, maker=args.actor, tenant=args.tenant, action="access")
+        print(f"  human review hand-off : {routing.outcome.value} {ref}".rstrip())
         return 0
 
     return 2  # pragma: no cover - argparse requires a subcommand
