@@ -64,6 +64,7 @@ from hex_service_kit.netdefaults import cors_allowlist, resolve_bind_host
 from hex_service_kit.web import (
     add_loopback_exposure_guard,
     add_security_headers,
+    install_answer_provenance,
     make_require_service_caller,
 )
 
@@ -243,6 +244,14 @@ app.add_middleware(
     + (["X-Dev-Persona"] if _EXPOSURE == LOCAL_PROFILE else []),
 )
 add_security_headers(app, profile=_EXPOSURE)
+
+# Which model answered, and whether it searched: the model adapters note it as they call
+# (`hex_service_kit.provenance.note_model` / `note_search`) and this emits it as `X-Answered-By` /
+# `X-Search-Used` on the same response. The console's pills read those two headers, so what a
+# pill names is what answered, never what configuration says would. This service binds no model
+# port: its engine is deterministic and notes nothing, so it sends neither header and the pill
+# keeps showing the configured `generator_model` (`no-model`).
+install_answer_provenance(app)
 
 # A request arrives with nothing authenticating the END USER unless BOTH of these hold, and the
 # guard bounds every case where either fails:
